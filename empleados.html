@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empleados - Sistema Central</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #C3A492; }
+    </style>
+</head>
+<body class="text-slate-900 font-sans flex h-screen overflow-hidden">
+
+    <div class="w-64 bg-[#2D7AC0] border-r border-[#2D7AC0] flex flex-col justify-between">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold tracking-tight text-white mb-8">Empresa Central</h2>
+            <nav class="space-y-3">
+                <a href="/dashboard.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">📊 Dashboard</a>
+                <a href="/inventario.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">📦 Inventario / Stock</a>
+                <a href="/ventas.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">🛒 Punto de Venta</a>
+                <a href="/empleados.html" class="block px-4 py-2.5 rounded-xl bg-white text-[#2D7AC0] font-medium transition-colors">👥 Empleados</a>
+                <a href="/proveedores.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">🚚 Proveedores</a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-white/20 bg-[#2D7AC0]">
+            <p class="text-xs text-white/60">Usuario activo:</p>
+            <p class="font-semibold text-sm text-white" id="nombre-usuario">Cargando...</p>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-y-auto p-8">
+        
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-[#2D7AC0]">Fichas del Personal</h1>
+                <p class="text-slate-900 text-sm mt-1">Registro interno, horarios y contactos de emergencia.</p>
+            </div>
+            <button onclick="cerrarSesion()" class="bg-[#2D7AC0] hover:bg-[#2568a5] px-4 py-2 rounded-xl text-sm text-white font-medium transition-colors">
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="bg-[#C3A492] p-6 rounded-2xl border-2 border-[#2D7AC0] h-fit transition-all duration-350" id="contenedor-formulario">
+                <h3 class="text-xl font-bold mb-4 text-[#2D7AC0]" id="titulo-form">Nueva Ficha</h3>
+                <form id="form-empleado" class="space-y-4">
+                    <input type="hidden" id="empleado-id" value="">
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-800 mb-1">Nº de Legajo</label>
+                            <input type="text" id="legajo" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-800 mb-1">CUIT / CUIL</label>
+                            <input type="text" id="cuit" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="XX-XXXXXXXX-X">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-800 mb-1">Nombre</label>
+                            <input type="text" id="nombre" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-800 mb-1">Apellido</label>
+                            <input type="text" id="apellido" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 mb-1">Edad</label>
+                        <input type="number" id="edad" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 mb-1">Sector / Puesto Laboral</label>
+                        <input type="text" id="puesto" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="Ej. Encargado de Ventas">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 mb-1">Horario a Cumplir</label>
+                        <input type="text" id="horario" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="Ej. 08:00 a 16:00">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 mb-1">Teléfono Personal</label>
+                        <input type="text" id="telefono" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 mb-1">📞 Teléfono de Emergencia</label>
+                        <input type="text" id="emergencia" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-red-900 font-medium focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Ej. Madre: 11-2345-6789">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 mb-1">Email</label>
+                        <input type="email" id="email" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]">
+                    </div>
+
+                    <div class="pt-2 space-y-2">
+                        <button type="button" onclick="procesarFicha()" id="btn-guardar" class="w-full bg-[#2D7AC0] hover:bg-[#2568a5] text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-[#2D7AC0]/20">
+                            Guardar Ficha
+                        </button>
+                        <button type="button" onclick="cancelarEdicion()" id="btn-cancelar" class="w-full bg-slate-500 hover:bg-slate-600 text-white font-medium py-2 rounded-xl text-sm transition-colors hidden">
+                            Cancelar Modificación
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 bg-[#C3A492] p-6 rounded-2xl border-2 border-[#2D7AC0]">
+                <h3 class="text-xl font-bold mb-4 text-[#2D7AC0]">Personal Registrado</h3>
+                
+                <div class="mb-4">
+                    <input type="text" id="buscador-empleados" oninput="filtrarEmpleados()" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0] font-medium" placeholder="🔍 Buscar por nombre, apellido, puesto, legajo o CUIT...">
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border-2 border-[#2D7AC0]">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-[#2D7AC0] text-white text-xs uppercase font-semibold">
+                                <th class="p-4">Empleado</th>
+                                <th class="p-4">Puesto / Sector</th>
+                                <th class="p-4">Horario</th>
+                                <th class="p-4">Contactos</th>
+                                <th class="p-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-empleados" class="divide-y divide-[#2D7AC0] text-sm">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const nombreSesion = sessionStorage.getItem('usuario_nombre');
+        const rolSesion = sessionStorage.getItem('usuario_rol');
+
+        if (!rolSesion || rolSesion !== 'admin') {
+            alert("Acceso denegado. Sección exclusiva del Administrador.");
+            if (rolSesion === 'deposito') window.location.href = '/deposito.html';
+            else if (rolSesion === 'vendedor') window.location.href = '/ventas.html';
+            else window.location.href = '/';
+        } else {
+            document.getElementById('nombre-usuario').innerText = nombreSesion + " (Admin)";
+        }
+
+        let listaEmpleados = [];
+
+        async function cargarEmpleados() {
+            const respuesta = await fetch('/api/empleados');
+            listaEmpleados = await respuesta.json();
+            inyectarTablaEmpleados(listaEmpleados);
+        }
+
+        function inyectarTablaEmpleados(datos) {
+            const tbody = document.getElementById('tabla-empleados');
+            tbody.innerHTML = ''; 
+
+            if(datos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-700">No se encontraron empleados registrados.</td></tr>`;
+                return;
+            }
+
+            datos.forEach(emp => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-[#2D7AC0]/10 transition-colors">
+                        <td class="p-4">
+                            <div class="text-xs text-[#2D7AC0] font-bold">Legajo: ${emp.legajo || '-'} | CUIT: ${emp.cuit || '-'}</div>
+                            <div class="font-medium text-slate-900">${emp.nombre} ${emp.apellido}</div>
+                            <div class="text-xs text-slate-700">${emp.edad ? emp.edad + ' años' : ''}</div>
+                        </td>
+                        <td class="p-4 text-[#2D7AC0] font-bold">${emp.puesto || '-'}</td>
+                        <td class="p-4 text-slate-800 text-xs font-semibold">${emp.horario || '-'}</td>
+                        <td class="p-4 text-xs space-y-1">
+                            <div class="text-slate-800">📞 Cel: ${emp.telefono || '-'}</div>
+                            <div class="text-red-700 font-bold">🚨 Urgencias: ${emp.numero_emergencia || '-'}</div>
+                            <div class="text-slate-700">✉️ ${emp.email || '-'}</div>
+                        </td>
+                        <td class="p-4 text-center whitespace-nowrap">
+                            <button onclick="prepararModificar(${emp.id})" class="bg-[#2D7AC0] text-white px-2.5 py-1.5 rounded-lg mr-2 text-xs font-bold transition-colors">✏️ Editar</button>
+                            <button onclick="eliminarFicha(${emp.id})" class="bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors">🗑️ Borrar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filtrarEmpleados() {
+            const texto = document.getElementById('buscador-empleados').value.toLowerCase();
+            const filtrados = listaEmpleados.filter(e => {
+                const nombre = (e.nombre || '').toLowerCase();
+                const apellido = (e.apellido || '').toLowerCase();
+                const puesto = (e.puesto || '').toLowerCase();
+                const legajo = (e.legajo || '').toLowerCase();
+                const cuit = (e.cuit || '').toLowerCase();
+                return nombre.includes(texto) || apellido.includes(texto) || puesto.includes(texto) || legajo.includes(texto) || cuit.includes(texto);
+            });
+            inyectarTablaEmpleados(filtrados);
+        }
+
+        async function procesarFicha() {
+            const id = document.getElementById('empleado-id').value;
+            const legajo = document.getElementById('legajo').value;
+            const cuit = document.getElementById('cuit').value;
+            const nombre = document.getElementById('nombre').value;
+            const apellido = document.getElementById('apellido').value;
+            const edad = document.getElementById('edad').value;
+            const puesto = document.getElementById('puesto').value;
+            const horario = document.getElementById('horario').value;
+            const telefono = document.getElementById('telefono').value;
+            const numero_emergencia = document.getElementById('emergencia').value;
+            const email = document.getElementById('email').value;
+
+            if(!nombre || !apellido) {
+                alert('Nombre y Apellido son obligatorios.');
+                return;
+            }
+
+            const payload = { legajo, cuit, nombre, apellido, edad, puesto, horario, telefono, email, numero_emergencia };
+            
+            let url = '/api/empleados';
+            let metodo = 'POST';
+
+            if (id) {
+                url = `/api/empleados/${id}`;
+                metodo = 'PUT';
+            }
+
+            const respuesta = await fetch(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const resultado = await respuesta.json();
+            
+            if(resultado.success) {
+                alert(resultado.mensaje);
+                cancelarEdicion(); 
+                cargarEmpleados(); 
+            } else {
+                alert('Error: ' + resultado.mensaje);
+            }
+        }
+
+        function prepararModificar(id) {
+            const emp = listaEmpleados.find(e => e.id === id);
+            if (!emp) return;
+
+            document.getElementById('empleado-id').value = emp.id;
+            document.getElementById('legajo').value = emp.legajo || '';
+            document.getElementById('cuit').value = emp.cuit || '';
+            document.getElementById('nombre').value = emp.nombre;
+            document.getElementById('apellido').value = emp.apellido;
+            document.getElementById('edad').value = emp.edad || '';
+            document.getElementById('puesto').value = emp.puesto || '';
+            document.getElementById('horario').value = emp.horario || '';
+            document.getElementById('telefono').value = emp.telefono || '';
+            document.getElementById('emergencia').value = emp.numero_emergencia || '';
+            document.getElementById('email').value = emp.email || '';
+
+            document.getElementById('titulo-form').innerText = "Modificar Datos";
+            document.getElementById('titulo-form').classList.replace('text-[#2D7AC0]', 'text-amber-700');
+            document.getElementById('btn-guardar').innerText = "Actualizar Ficha";
+            document.getElementById('btn-cancelar').classList.remove('hidden');
+        }
+
+        function cancelarEdicion() {
+            document.getElementById('form-empleado').reset();
+            document.getElementById('empleado-id').value = "";
+            document.getElementById('titulo-form').innerText = "Nueva Ficha";
+            document.getElementById('titulo-form').className = "text-xl font-bold mb-4 text-[#2D7AC0]";
+            document.getElementById('btn-guardar').innerText = "Guardar Ficha";
+            document.getElementById('btn-cancelar').classList.add('hidden');
+        }
+
+        async function eliminarFicha(id) {
+            const emp = listaEmpleados.find(e => e.id === id);
+            if (!emp) return;
+
+            if (!confirm(`¿Estás seguro de que querés borrar la ficha técnica de ${emp.nombre} ${emp.apellido}?`)) {
+                return;
+            }
+
+            const respuesta = await fetch(`/api/empleados/${id}`, { method: 'DELETE' });
+            const resultado = await respuesta.json();
+
+            if (resultado.success) {
+                alert(resultado.mensaje);
+                cargarEmpleados();
+            } else {
+                alert('Error al borrar: ' + resultado.mensaje);
+            }
+        }
+
+        function cerrarSesion() {
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
+
+        cargarEmpleados();
+    </script>
+</body>
+</html>

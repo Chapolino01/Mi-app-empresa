@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesorería - Sistema Central</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style> body { background-color: #C3A492; } </style>
+</head>
+<body class="text-slate-900 font-sans flex h-screen overflow-hidden">
+
+    <div class="group w-16 hover:w-64 bg-[#2D7AC0] text-white border-r border-[#2D7AC0] flex flex-col justify-between transition-all duration-300 overflow-hidden">
+        <div class="p-4">
+            <h2 class="text-2xl font-bold tracking-tight mb-8 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Empresa Central</h2>
+            <nav class="space-y-3">
+                <a href="/dashboard.html" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors"><span>📊</span><span class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">Dashboard</span></a>
+                <a href="/tesoreria.html" class="flex items-center px-3 py-2.5 rounded-xl bg-white/20 text-white font-medium transition-colors"><span>💰</span><span class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">Tesorería</span></a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-y-auto p-8">
+        <h1 class="text-3xl font-bold text-[#2D7AC0] mb-6">Gestión de Tesorería</h1>
+
+        <div id="tabs-container" class="flex flex-wrap gap-2 mb-6 bg-white/50 p-2 rounded-2xl w-fit">
+            <button onclick="mostrarTab('rrhh')" id="btn-rrhh" class="tab-btn px-6 py-2 rounded-xl font-bold bg-[#2D7AC0] text-white">RRHH</button>
+            <button onclick="mostrarTab('proveedores')" id="btn-proveedores" class="tab-btn px-6 py-2 rounded-xl font-bold hover:bg-white transition-colors">CC Proveedores</button>
+            <button onclick="mostrarTab('compradores')" id="btn-compradores" class="tab-btn px-6 py-2 rounded-xl font-bold hover:bg-white transition-colors">CC Compradores</button>
+            <button onclick="mostrarTab('movimientos')" id="btn-movimientos" class="tab-btn px-6 py-2 rounded-xl font-bold hover:bg-white transition-colors">Movimientos</button>
+        </div>
+
+        <div id="view-rrhh" class="tab-content grid grid-cols-2 gap-6">
+            <div class="bg-white/60 p-6 rounded-2xl border border-[#2D7AC0]">
+                <h2 class="text-xl font-bold mb-4">Gestión de Sueldos y Haberes</h2>
+                <form id="form-rrhh" class="grid grid-cols-2 gap-4">
+                    <input type="text" id="cuit" placeholder="CUIT/CUIL" class="p-2 rounded-lg border">
+                    <input type="text" id="nombre" placeholder="Nombre empleado" class="p-2 rounded-lg border">
+                    <input type="number" id="haberes" placeholder="Haberes" class="p-2 rounded-lg border">
+                    <input type="number" id="premios" placeholder="Premios" class="p-2 rounded-lg border">
+                    <input type="number" id="aguinaldos" placeholder="Aguinaldos" class="p-2 rounded-lg border">
+                    <input type="number" id="bono" placeholder="Bono.Prod" class="p-2 rounded-lg border">
+                    <button type="button" onclick="agregarFila()" class="col-span-2 bg-[#2D7AC0] text-white p-2 rounded-xl font-bold">Guardar</button>
+                </form>
+            </div>
+            <div class="bg-white/60 p-6 rounded-2xl border border-[#2D7AC0]">
+                <h2 class="text-xl font-bold mb-4">Listado de Empleados</h2>
+                <table class="w-full text-sm">
+                    <thead><tr class="border-b border-[#2D7AC0]"><th>Nombre</th><th>CUIL</th><th>Total</th><th>Acción</th></tr></thead>
+                    <tbody id="tabla-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-proveedores" class="tab-content hidden"><h2 class="text-xl font-bold mb-4">Cuenta Corriente Proveedores</h2><div class="bg-white/60 p-6 rounded-2xl border border-[#2D7AC0]"><p>Listado de deudas...</p></div></div>
+        <div id="view-compradores" class="tab-content hidden"><h2 class="text-xl font-bold mb-4">Cuenta Corriente Compradores</h2><div class="bg-white/60 p-6 rounded-2xl border border-[#2D7AC0]"><p>Listado de cuentas por cobrar...</p></div></div>
+        <div id="view-movimientos" class="tab-content hidden"><h2 class="text-xl font-bold mb-4">Registro de Ingresos y Gastos</h2><div class="bg-white/60 p-6 rounded-2xl border border-[#2D7AC0]"><p>Balance general...</p></div></div>
+    </div>
+
+    <script>
+        function mostrarTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-[#2D7AC0]', 'text-white');
+                btn.classList.add('hover:bg-white');
+            });
+            const btnActivo = document.getElementById('btn-' + tabId);
+            btnActivo.classList.add('bg-[#2D7AC0]', 'text-white');
+            btnActivo.classList.remove('hover:bg-white');
+        }
+        function agregarFila() {
+            const n = document.getElementById('nombre').value;
+            const c = document.getElementById('cuit').value;
+            const t = parseFloat(document.getElementById('haberes').value || 0) + parseFloat(document.getElementById('premios').value || 0) + parseFloat(document.getElementById('aguinaldos').value || 0) + parseFloat(document.getElementById('bono').value || 0);
+            const tbody = document.getElementById('tabla-body');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${n}</td><td>${c}</td><td>$${t.toFixed(2)}</td><td><button onclick="this.parentElement.parentElement.remove()" class="text-red-500 font-bold mr-2">X</button><button onclick="editar(this)" class="text-blue-500 font-bold">✎</button></td>`;
+            tbody.appendChild(row);
+            document.getElementById('form-rrhh').reset();
+        }
+        function editar(btn) {
+            const row = btn.parentElement.parentElement;
+            document.getElementById('nombre').value = row.cells[0].innerText;
+            document.getElementById('cuit').value = row.cells[1].innerText;
+            row.remove();
+        }
+    </script>
+</body>
+</html>

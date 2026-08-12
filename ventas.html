@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punto de Venta - Sistema Central</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #C3A492; }
+    </style>
+</head>
+<body class="text-slate-900 font-sans flex h-screen overflow-hidden">
+
+    <div class="w-64 bg-[#2D7AC0] border-r border-[#2D7AC0] flex flex-col justify-between">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold tracking-tight text-white mb-8">Empresa Central</h2>
+            <nav class="space-y-3" id="menu-navegacion">
+                <a href="/dashboard.html" id="link-dash" class="hidden px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">📊 Dashboard</a>
+                <a href="/inventario.html" id="link-inv" class="hidden px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">📦 Inventario / Stock</a>
+                <a href="/tesoreria.html" id="link-tesoreria" class="hidden px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">💰 Tesorería (Admin)</a>
+                <a href="/ventas.html" class="block px-4 py-2.5 rounded-xl bg-white text-[#2D7AC0] font-medium transition-colors">🛒 Punto de Venta</a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-white/20 bg-[#2D7AC0]">
+            <p class="text-xs text-white/60">Vendedor activo:</p>
+            <p class="font-semibold text-sm text-white" id="nombre-usuario">Cargando...</p>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-row overflow-hidden">
+        
+        <div class="flex-1 flex flex-col p-8 overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-[#2D7AC0]">Terminal de Ventas</h1>
+                    <p class="text-slate-900 text-sm mt-1">Ingresa los productos mediante el código de barras.</p>
+                </div>
+                <button onclick="cerrarSesion()" class="bg-[#2D7AC0] hover:bg-[#2568a5] px-4 py-2 rounded-xl text-sm text-white font-medium transition-colors">
+                    Cerrar Sesión
+                </button>
+            </div>
+
+            <div class="bg-[#C3A492] p-4 rounded-2xl border-2 border-[#2D7AC0] mb-6">
+                <label class="block text-xs font-semibold text-slate-800 mb-2 uppercase tracking-wider">Escanear o Tipear Código de Barras</label>
+                <div class="flex gap-3">
+                    <input type="text" id="codigo-buscar" onkeydown="if(event.key === 'Enter') buscarYAgregar()" class="flex-1 bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-3 text-slate-900 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="779123456789...">
+                    <button onclick="buscarYAgregar()" class="bg-[#2D7AC0] hover:bg-[#2568a5] text-white px-6 rounded-xl font-bold transition-colors">
+                        Agregar
+                    </button>
+                </div>
+                
+                <div id="display-producto" class="mt-4 p-4 bg-white/50 rounded-xl border border-[#2D7AC0] hidden">
+                    <p class="text-[10px] text-[#2D7AC0] uppercase font-bold">Último producto escaneado:</p>
+                    <h3 id="v-nombre" class="text-lg font-bold text-slate-900"></h3>
+                    <div class="flex gap-4 mt-1 text-sm">
+                        <span class="text-[#2D7AC0] font-bold">Detalle 1: <span id="v-detalle1" class="text-slate-800"></span></span>
+                        <span class="text-[#2D7AC0] font-bold">Detalle 2: <span id="v-detalle2" class="text-slate-800"></span></span>
+                    </div>
+                    <p class="text-xl font-black text-[#2D7AC0] mt-2">$<span id="v-precio"></span></p>
+                </div>
+            </div>
+
+            <div class="bg-[#C3A492] rounded-2xl border-2 border-[#2D7AC0] flex-1 overflow-hidden flex flex-col">
+                <div class="p-4 bg-[#2D7AC0] border-b border-[#2D7AC0] flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-white">Detalle de la Venta</h3>
+                    <span id="etiqueta-recargo" class="text-xs bg-amber-500 font-bold px-2 py-0.5 rounded text-white hidden">Recargo aplicado</span>
+                </div>
+                <div class="overflow-y-auto flex-1">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-[#2D7AC0]/20 text-[#2D7AC0] text-xs uppercase font-semibold border-b border-[#2D7AC0]">
+                                <th class="p-4">Descripción</th>
+                                <th class="p-4 text-center w-32">Cantidad</th>
+                                <th class="p-4 text-right w-32">Precio Unit.</th>
+                                <th class="p-4 text-right w-32">Subtotal</th>
+                                <th class="p-4 text-center w-16"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="detalle-carrito" class="divide-y divide-[#2D7AC0]/20 text-sm">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-[420px] bg-[#C3A492] border-l-2 border-[#2D7AC0] p-6 flex flex-col justify-between overflow-y-auto">
+            <div>
+                <div class="flex justify-between items-center mb-4 border-b-2 border-[#2D7AC0]/20 pb-3">
+                    <h3 class="text-xl font-bold text-[#2D7AC0]">Resumen de Caja</h3>
+                    <span id="estado-caja-badge" class="px-2.5 py-1 rounded-lg text-xs font-black bg-red-600 text-white">CERRADA</span>
+                </div>
+                
+                <div class="flex gap-2 mb-4">
+                    <button onclick="cambiarPerfilCaja()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-2 rounded-xl text-xs transition-colors">
+                        👤 Cambiar Perfil
+                    </button>
+                    <button onclick="cerrarCajaLocal()" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-2 rounded-xl text-xs transition-colors">
+                        🔒 Cerrar Turno
+                    </button>
+                </div>
+
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between text-slate-900">
+                        <span>Items totales:</span>
+                        <span id="total-items" class="font-bold text-base">0</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-slate-800 text-xs bg-white/30 p-2 rounded-lg border border-[#2D7AC0]/20">
+                        <span>Recargo Adicional (%):</span>
+                        <input type="number" id="porcentaje-recargo" min="0" value="10" onchange="actualizarTabla()" class="w-16 bg-white border border-[#2D7AC0] rounded px-1.5 py-0.5 text-center font-bold">
+                    </div>
+
+                    <div class="border-t-2 border-dashed border-[#2D7AC0]/50 my-2"></div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-slate-900 font-bold">TOTAL A PAGAR:</span>
+                        <span id="total-precio" class="text-4xl font-black text-[#2D7AC0] tracking-tight">$0.00</span>
+                    </div>
+
+                    <div class="mt-2">
+                        <label class="block text-xs font-bold text-slate-800 mb-1 uppercase">Método de Cobro:</label>
+                        <select id="tipo-pago" onchange="toggleCamposCredito()" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-3 py-2 text-slate-900 font-semibold focus:outline-none">
+                            <option value="efectivo">Efectivo</option>
+                            <option value="credito">Crédito (Cuenta Corriente)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="seccion-credito" class="space-y-2 p-3 bg-white/40 border border-[#2D7AC0] rounded-xl hidden">
+                        <p class="text-xs font-black text-[#2D7AC0] uppercase">Datos del Comprador a Crédito</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="cred-nombre" class="bg-white border border-[#2D7AC0] rounded-lg px-2.5 py-1.5 text-xs" placeholder="Nombre...">
+                            <input type="text" id="cred-apellido" class="bg-white border border-[#2D7AC0] rounded-lg px-2.5 py-1.5 text-xs" placeholder="Apellido...">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="cred-dni" class="bg-white border border-[#2D7AC0] rounded-lg px-2.5 py-1.5 text-xs font-mono" placeholder="DNI...">
+                            <input type="text" id="cred-telefono" class="bg-white border border-[#2D7AC0] rounded-lg px-2.5 py-1.5 text-xs font-mono" placeholder="Teléfono...">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-700 uppercase">Cantidad de Cuotas:</label>
+                            <input type="number" id="cred-cuotas" min="1" value="1" class="w-full bg-white border border-[#2D7AC0] rounded-lg px-2.5 py-1.5 text-xs font-bold">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 space-y-2">
+                <button onclick="confirmarVenta()" class="w-full bg-[#2D7AC0] hover:bg-[#2568a5] text-white font-black py-3 rounded-2xl text-lg transition-all duration-300 transform active:scale-95 shadow-xl shadow-[#2D7AC0]/20">
+                    ⚡ Finalizar Venta
+                </button>
+                <button onclick="abrirModalGestionCuotas()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition-colors">
+                    📋 Buscar y Abonar Cuotas de Clientes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-cuotas" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-[#C3A492] border-2 border-[#2D7AC0] rounded-2xl w-full max-w-xl p-6 shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 border-b border-[#2D7AC0]/30 pb-3">
+                <h3 class="text-xl font-bold text-[#2D7AC0]">Gestión de Créditos y Cuotas</h3>
+                <button onclick="cerrarModalCuotas()" class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold">✕</button>
+            </div>
+            <div class="mb-4 flex gap-2">
+                <input type="text" id="buscar-dni-cliente" class="flex-1 bg-white border border-[#2D7AC0] rounded-xl px-3 py-2 text-sm" placeholder="Buscar por DNI o Nombre...">
+                <button onclick="filtrarCreditosCliente()" class="bg-[#2D7AC0] text-white px-4 rounded-xl text-xs font-bold">Buscar</button>
+            </div>
+            <div class="overflow-y-auto flex-1 bg-white/40 rounded-xl p-3 border border-[#2D7AC0]/30">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="text-[#2D7AC0] uppercase border-b border-[#2D7AC0]/30 font-bold">
+                            <th class="p-2">Cliente / DNI</th>
+                            <th class="p-2">Detalle / Deuda</th>
+                            <th class="p-2 text-center">Cuotas Restantes</th>
+                            <th class="p-2 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-creditos-tabla" class="divide-y divide-[#2D7AC0]/20">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let nombreSesion = sessionStorage.getItem('usuario_nombre') || localStorage.getItem('vendedor_pc') || "";
+        const rolSesion = sessionStorage.getItem('usuario_rol') || "vendedor";
+
+        if (!nombreSesion) {
+            pedirNombrePerfilInicial();
+        } else {
+            actualizarInterfazUsuario();
+        }
+
+        function pedirNombrePerfilInicial() {
+            const usuarioIngresado = prompt("Ingrese el nombre del vendedor para esta terminal:", "Vendedor");
+            if (usuarioIngresado && usuarioIngresado.trim() !== "") {
+                nombreSesion = usuarioIngresado.trim();
+                localStorage.setItem('vendedor_pc', nombreSesion);
+                sessionStorage.setItem('usuario_nombre', nombreSesion);
+            } else {
+                nombreSesion = "General";
+            }
+            actualizarInterfazUsuario();
+        }
+
+        function cambiarPerfilCaja() {
+            const nuevoUsuario = prompt("Cambiar perfil de usuario en esta PC (Nombre de usuario):", nombreSesion);
+            if (nuevoUsuario && nuevoUsuario.trim() !== "") {
+                nombreSesion = nuevoUsuario.trim();
+                localStorage.setItem('vendedor_pc', nombreSesion);
+                sessionStorage.setItem('usuario_nombre', nombreSesion);
+                actualizarInterfazUsuario();
+                alert(`Perfil cambiado a: ${nombreSesion}`);
+            }
+        }
+
+        function actualizarInterfazUsuario() {
+            document.getElementById('nombre-usuario').innerText = nombreSesion + ` (${rolSesion.toUpperCase()})`;
+            if (rolSesion === 'admin') {
+                document.getElementById('link-dash').classList.remove('hidden');
+                document.getElementById('link-inv').classList.remove('hidden');
+                document.getElementById('link-tesoreria').classList.remove('hidden');
+            }
+            verificarEstadoCajaUI();
+        }
+
+        function verificarEstadoCajaUI() {
+            const badge = document.getElementById('estado-caja-badge');
+            if (nombreSesion) {
+                badge.innerText = `ACTIVA (${nombreSesion})`;
+                badge.classList.remove('bg-red-600');
+                badge.classList.add('bg-emerald-600');
+            } else {
+                badge.innerText = 'CERRADA';
+                badge.classList.remove('bg-emerald-600');
+                badge.classList.add('bg-red-600');
+            }
+        }
+
+        function toggleCamposCredito() {
+            const tipo = document.getElementById('tipo-pago').value;
+            const seccion = document.getElementById('seccion-credito');
+            const etiquetaRecargo = document.getElementById('etiqueta-recargo');
+            
+            if (tipo === 'credito') {
+                seccion.classList.remove('hidden');
+                etiquetaRecargo.classList.remove('hidden');
+            } else {
+                seccion.classList.add('hidden');
+                etiquetaRecargo.classList.add('hidden');
+            }
+            actualizarTabla();
+        }
+
+        function cerrarCajaLocal() {
+            if (!confirm(`¿Desea cerrar el turno para el vendedor ${nombreSesion} en esta terminal?`)) return;
+            alert(`Turno de ${nombreSesion} cerrado en esta PC.`);
+            localStorage.removeItem('vendedor_pc');
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
+
+        let carrito = [];
+
+        async function buscarYAgregar() {
+            const inputCodigo = document.getElementById('codigo-buscar');
+            const codigo = inputCodigo.value.trim();
+
+            if (!codigo) return;
+
+            const respuesta = await fetch('/api/productos');
+            const productos = await respuesta.json();
+            const productoEncontrado = productos.find(p => p.codigo_barra === codigo);
+
+            if (productoEncontrado) {
+                document.getElementById('v-nombre').innerText = productoEncontrado.nombre;
+                document.getElementById('v-detalle1').innerText = productoEncontrado.detalle1 || '-';
+                document.getElementById('v-detalle2').innerText = productoEncontrado.detalle2 || '-';
+                document.getElementById('v-precio').innerText = productoEncontrado.precio_venta;
+                document.getElementById('display-producto').classList.remove('hidden');
+
+                const itemExistente = carrito.find(item => item.id === productoEncontrado.id);
+
+                if (itemExistente) {
+                    itemExistente.cantidad++;
+                } else {
+                    carrito.push({
+                        id: productoEncontrado.id,
+                        nombre: productoEncontrado.nombre,
+                        precioOriginal: parseFloat(productoEncontrado.precio_venta),
+                        cantidad: 1
+                    });
+                }
+                inputCodigo.value = '';
+                actualizarTabla();
+            } else {
+                alert('Producto no encontrado en el sistema.');
+            }
+            inputCodigo.focus();
+        }
+
+        function calcularPrecioUnitario(item) {
+            const tipoPago = document.getElementById('tipo-pago').value;
+            const porcentaje = parseFloat(document.getElementById('porcentaje-recargo').value) || 0;
+            
+            if (tipoPago === 'credito') {
+                return item.precioOriginal * (1 + (porcentaje / 100));
+            }
+            return item.precioOriginal;
+        }
+
+        function actualizarTabla() {
+            const tbody = document.getElementById('detalle-carrito');
+            tbody.innerHTML = '';
+            let totalPrecio = 0;
+            let totalItems = 0;
+
+            if (carrito.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-700 font-semibold">Ningún artículo ingresado.</td></tr>`;
+            } else {
+                carrito.forEach((item, index) => {
+                    const precioUnitario = calcularPrecioUnitario(item);
+                    const subtotal = precioUnitario * item.cantidad;
+                    totalPrecio += subtotal;
+                    totalItems += item.cantidad;
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-[#2D7AC0]/10 transition-colors border-b border-[#2D7AC0]/20">
+                            <td class="p-4 font-bold text-slate-900">${item.nombre}</td>
+                            <td class="p-4 text-center">
+                                <input type="number" min="1" value="${item.cantidad}" onchange="cambiarCantidad(${index}, this.value)" class="w-16 bg-white border border-[#2D7AC0] rounded-lg text-center px-1 py-1 focus:outline-none font-bold">
+                            </td>
+                            <td class="p-4 text-right text-slate-800 font-medium">$${precioUnitario.toFixed(2)}</td>
+                            <td class="p-4 text-right text-[#2D7AC0] font-black">$${subtotal.toFixed(2)}</td>
+                            <td class="p-4 text-center">
+                                <button onclick="eliminarItem(${index})" class="bg-red-600 text-white px-2 py-1 rounded-lg text-xs font-bold">✕</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('total-items').innerText = totalItems;
+            document.getElementById('total-precio').innerText = `$${totalPrecio.toFixed(2)}`;
+        }
+
+        function cambiarCantidad(index, valor) {
+            const cant = parseInt(valor);
+            if (cant > 0) {
+                carrito[index].cantidad = cant;
+                actualizarTabla();
+            }
+        }
+
+        function eliminarItem(index) {
+            carrito.splice(index, 1);
+            actualizarTabla();
+        }
+
+        async function confirmarVenta() {
+            if (!nombreSesion) {
+                alert('⚠️ No hay ningún perfil de vendedor activo en esta PC.');
+                return;
+            }
+
+            if (carrito.length === 0) {
+                alert('No hay productos en el detalle para facturar.');
+                return;
+            }
+
+            const tipoPago = document.getElementById('tipo-pago').value;
+            let datosCliente = null;
+
+            // Ajustar los precios finales con el recargo incluido para procesarlos
+            const carritoProcesado = carrito.map(item => ({
+                ...item,
+                precio: calcularPrecioUnitario(item)
+            }));
+
+            if (tipoPago === 'credito') {
+                const nombre = document.getElementById('cred-nombre').value.trim();
+                const apellido = document.getElementById('cred-apellido').value.trim();
+                const dni = document.getElementById('cred-dni').value.trim();
+                const telefono = document.getElementById('cred-telefono').value.trim();
+                const cuotas = parseInt(document.getElementById('cred-cuotas').value) || 1;
+
+                if (!nombre || !apellido || !dni) {
+                    alert('⚠️ Para registrar el crédito son obligatorios Nombre, Apellido y DNI.');
+                    return;
+                }
+
+                datosCliente = { nombre, apellido, dni, telefono, cuotasTotales: cuotas, cuotasRestantes: cuotas };
+            }
+
+            if (!confirm(`¿Confirmar venta (${tipoPago.toUpperCase()}) por $${document.getElementById('total-precio').innerText}?`)) return;
+
+            const totalVenta = carritoProcesado.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+            
+            if (tipoPago === 'credito') {
+                let creditosLocal = JSON.parse(localStorage.getItem('cuentas_corrientes') || '[]');
+                creditosLocal.push({
+                    id: Date.now(),
+                    ...datosCliente,
+                    productos: [...carritoProcesado],
+                    totalDeuda: totalVenta,
+                    vendedor: nombreSesion,
+                    fecha: new Date().toLocaleString()
+                });
+                localStorage.setItem('cuentas_corrientes', JSON.stringify(creditosLocal));
+            }
+
+            const respuesta = await fetch('/api/ventas/procesar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    carrito: carritoProcesado, 
+                    vendedor: nombreSesion, 
+                    tipoPago, 
+                    cliente: datosCliente ? `${datosCliente.nombre} ${datosCliente.apellido}` : 'Consumidor Final',
+                    credito: datosCliente
+                })
+            });
+
+            const resultado = await respuesta.json();
+
+            if (resultado.success) {
+                alert(`¡Venta procesada con éxito a nombre de ${nombreSesion}!`);
+                carrito = [];
+                document.getElementById('cred-nombre').value = '';
+                document.getElementById('cred-apellido').value = '';
+                document.getElementById('cred-dni').value = '';
+                document.getElementById('cred-telefono').value = '';
+                document.getElementById('cred-cuotas').value = '1';
+                document.getElementById('display-producto').classList.add('hidden');
+                actualizarTabla();
+                document.getElementById('codigo-buscar').focus();
+            } else {
+                alert('Error al facturar: ' + resultado.mensaje);
+            }
+        }
+
+        function abrirModalGestionCuotas() {
+            document.getElementById('modal-cuotas').classList.remove('hidden');
+            filtrarCreditosCliente();
+        }
+
+        function cerrarModalCuotas() {
+            document.getElementById('modal-cuotas').classList.add('hidden');
+        }
+
+        function filtrarCreditosCliente() {
+            const query = document.getElementById('buscar-dni-cliente').value.toLowerCase();
+            const creditos = JSON.parse(localStorage.getItem('cuentas_corrientes') || '[]');
+            const tbody = document.getElementById('lista-creditos-tabla');
+            tbody.innerHTML = '';
+
+            const filtrados = creditos.filter(c => 
+                c.dni.toLowerCase().includes(query) || 
+                c.nombre.toLowerCase().includes(query) || 
+                c.apellido.toLowerCase().includes(query)
+            );
+
+            if (filtrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-700">No se encontraron créditos registrados.</td></tr>`;
+                return;
+            }
+
+            filtrados.forEach((cred) => {
+                const nombresProd = cred.productos.map(p => `${p.cantidad}x ${p.nombre}`).join(', ');
+                const valorCuota = (cred.totalDeuda / cred.cuotasTotales).toFixed(2);
+                tbody.innerHTML += `
+                    <tr class="border-b border-[#2D7AC0]/10 hover:bg-[#2D7AC0]/10">
+                        <td class="p-2 font-bold">${cred.nombre} ${cred.apellido}<br><span class="font-mono text-slate-700">DNI: ${cred.dni}</span></td>
+                        <td class="p-2">${nombresProd}<br><span class="font-bold text-[#2D7AC0]">Deuda: $${cred.totalDeuda.toFixed(2)} ($${valorCuota}/cuota)</span></td>
+                        <td class="p-2 text-center font-black text-base">${cred.cuotasRestantes} / ${cred.cuotasTotales}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="abonarCuota(${cred.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-lg text-xs" ${cred.cuotasRestantes <= 0 ? 'disabled' : ''}>
+                                ${cred.cuotasRestantes > 0 ? 'Pagar Cuota (-1)' : 'Saldado'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function abonarCuota(id) {
+            let creditos = JSON.parse(localStorage.getItem('cuentas_corrientes') || '[]');
+            const index = creditos.findIndex(c => c.id === id);
+            
+            if (index !== -1 && creditos[index].cuotasRestantes > 0) {
+                creditos[index].cuotasRestantes--;
+                localStorage.setItem('cuentas_corrientes', JSON.stringify(creditos));
+                alert(`Cuota descontada con éxito. Quedan ${creditos[index].cuotasRestantes} cuotas.`);
+                filtrarCreditosCliente();
+            }
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('vendedor_pc');
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
+
+        actualizarTabla();
+        document.getElementById('codigo-buscar').focus();
+    </script>
+</body>
+</html>

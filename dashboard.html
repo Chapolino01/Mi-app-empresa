@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Sistema Central</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-custom-fondo { background-color: #C3A492; }
+    </style>
+</head>
+<body class="bg-custom-fondo text-slate-900 font-sans flex h-screen overflow-hidden">
+
+    <div class="group w-16 hover:w-64 bg-[#2D7AC0] text-white border-r border-[#2D7AC0] flex flex-col justify-between transition-all duration-300 overflow-hidden">
+        <div class="p-4">
+            <h2 class="text-2xl font-bold tracking-tight mb-8 whitespace-nowrap overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity">Empresa Central</h2>
+            
+            <div class="font-bold text-center mb-6 select-none text-white/70">
+                &lt;&lt;
+            </div>
+
+            <nav class="space-y-3">
+                <a href="/dashboard.html" class="flex items-center px-3 py-2.5 rounded-xl bg-white/20 text-white font-medium transition-colors">
+                    <span class="text-xl">📊</span>
+                    <span class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Dashboard</span>
+                </a>
+                <a href="/inventario.html" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors">
+                    <span class="text-xl">📦</span>
+                    <span class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Inventario</span>
+                </a>
+                <a href="/ventas.html" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors">
+                    <span class="text-xl">🛒</span>
+                    <span class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Punto de Venta</span>
+                </a>
+                <a href="/empleados.html" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors">
+                    <span class="text-xl">👥</span>
+                    <span class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Empleados</span>
+                </a>
+                <a href="/proveedores.html" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors">
+                    <span class="text-xl">🚚</span>
+                    <span class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Proveedores</span>
+                </a>
+                <a href="/tesoreria.html" class="flex items-center px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors">
+                    <span class="text-xl">💰</span>
+                    <span class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Tesorería</span>
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-white/20 bg-[#2568a5]">
+            <p class="text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity">Usuario activo:</p>
+            <p class="font-semibold text-sm truncate opacity-0 group-hover:opacity-100 transition-opacity" id="nombre-usuario">Cargando...</p>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-y-auto p-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-[#2D7AC0]">Resumen de Operaciones</h1>
+                <p class="text-[#4a3d36] text-sm mt-1">Flujo general del negocio en red local.</p>
+            </div>
+            <button onclick="cerrarSesion()" class="bg-[#2D7AC0] hover:bg-[#2568a5] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">Cerrar Sesión</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white/80 p-6 rounded-2xl border-l-4 border-[#2D7AC0] shadow-sm">
+                <p class="text-slate-600 text-sm font-medium">Ventas del Día</p>
+                <p id="total-ventas" class="text-3xl font-bold mt-2 text-[#2D7AC0]">$0.00</p>
+            </div>
+            <div class="bg-white/80 p-6 rounded-2xl border-l-4 border-[#2D7AC0] shadow-sm">
+                <p class="text-slate-600 text-sm font-medium">Ganancia Estimada</p>
+                <p id="total-ganancia" class="text-3xl font-bold mt-2 text-[#2D7AC0]">$0.00</p>
+            </div>
+            <div class="bg-white/80 p-6 rounded-2xl border-l-4 border-[#2D7AC0] shadow-sm">
+                <p class="text-slate-600 text-sm font-medium">Productos en Stock</p>
+                <p id="total-productos" class="text-3xl font-bold mt-2 text-[#2D7AC0]">0</p>
+            </div>
+            <div class="bg-white/80 p-6 rounded-2xl border-l-4 border-[#2D7AC0] shadow-sm">
+                <p class="text-slate-600 text-sm font-medium">Alertas Stock (≤ 5)</p>
+                <p id="total-alertas" class="text-3xl font-bold mt-2 text-[#2D7AC0]">0</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const nombreSesion = sessionStorage.getItem('usuario_nombre');
+        const rolSesion = sessionStorage.getItem('usuario_rol');
+
+        if (!rolSesion || rolSesion !== 'admin') {
+            window.location.href = '/';
+        } else {
+            document.getElementById('nombre-usuario').innerText = nombreSesion + " (Admin)";
+            iniciarDashboard();
+        }
+
+        async function iniciarDashboard() {
+            const [resProductos, resVentas] = await Promise.all([
+                fetch('/api/productos').then(r => r.json()),
+                fetch('/api/ganancias/dia').then(r => r.json())
+            ]);
+
+            const alertas = resProductos.filter(p => parseInt(p.stock_actual) <= 5).length;
+            document.getElementById('total-alertas').innerText = alertas + " alertas";
+            document.getElementById('total-productos').innerText = resProductos.length;
+
+            let totalVenta = 0;
+            let totalGanancia = 0;
+            resVentas.forEach(v => {
+                totalVenta += parseFloat(v.total_venta);
+                totalGanancia += parseFloat(v.ganancia);
+            });
+
+            document.getElementById('total-ventas').innerText = `$${totalVenta.toFixed(2)}`;
+            document.getElementById('total-ganancia').innerText = `$${totalGanancia.toFixed(2)}`;
+        }
+
+        function cerrarSesion() {
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proveedores - Sistema Central</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #C3A492; }
+    </style>
+</head>
+<body class="text-slate-900 font-sans flex h-screen overflow-hidden">
+
+    <div class="w-64 bg-[#2D7AC0] border-r border-[#2D7AC0] flex flex-col justify-between">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold tracking-tight text-white mb-8">Empresa Central</h2>
+            <nav class="space-y-3">
+                <a href="/dashboard.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">📊 Dashboard</a>
+                <a href="/inventario.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">📦 Inventario / Stock</a>
+                <a href="/ventas.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">🛒 Punto de Venta</a>
+                <a href="/empleados.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">👥 Empleados</a>
+                <a href="/proveedores.html" class="block px-4 py-2.5 rounded-xl bg-white text-[#2D7AC0] font-medium transition-colors">🚚 Proveedores</a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-white/20 bg-[#2D7AC0]">
+            <p class="text-xs text-white/60">Usuario activo:</p>
+            <p class="font-semibold text-sm text-white" id="nombre-usuario">Cargando...</p>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-y-auto p-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-[#2D7AC0]">Gestión de Proveedores</h1>
+                <p class="text-slate-800 text-sm mt-1">Carga de proveedores, contactos y logística de entrega.</p>
+            </div>
+            <button onclick="cerrarSesion()" class="bg-[#2D7AC0] hover:bg-[#2568a5] px-4 py-2 rounded-xl text-sm font-medium text-white transition-colors">Cerrar Sesión</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="bg-white/60 p-6 rounded-2xl border-2 border-[#2D7AC0] h-fit" id="contenedor-formulario">
+                <h3 class="text-xl font-bold mb-4 text-[#2D7AC0]" id="titulo-form">Nuevo Proveedor</h3>
+                <form id="form-proveedor" class="space-y-4">
+                    <input type="hidden" id="proveedor-id" value="">
+                    <div>
+                        <label class="block text-xs font-bold text-[#2D7AC0] mb-1">Razon Social</label>
+                        <input type="text" id="razon-social" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#2D7AC0] mb-1">CUIT / CUIL</label>
+                        <input type="text" id="cuit" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#2D7AC0] mb-1">Teléfono</label>
+                        <input type="text" id="telefono" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#2D7AC0] mb-1">Email</label>
+                        <input type="email" id="email" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#2D7AC0] mb-1">Mercadería</label>
+                        <input type="text" id="mercaderia" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#2D7AC0] mb-1">Días de Entrega</label>
+                        <input type="text" id="dias" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]">
+                    </div>
+                    <div class="pt-2 space-y-2">
+                        <button type="button" onclick="procesarProveedor()" id="btn-guardar" class="w-full bg-[#2D7AC0] hover:bg-[#2568a5] text-white font-bold py-3 rounded-xl transition-colors">Guardar</button>
+                        <button type="button" onclick="cancelarEdicion()" id="btn-cancelar" class="w-full bg-slate-500 hover:bg-slate-600 font-medium py-2 rounded-xl text-sm text-white hidden">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 bg-white/60 p-6 rounded-2xl border-2 border-[#2D7AC0]">
+                <h3 class="text-xl font-bold mb-4 text-[#2D7AC0]">Lista de Proveedores</h3>
+                
+                <div class="mb-4">
+                    <input type="text" id="buscador-proveedores" oninput="filtrarProveedores()" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="🔍 Buscar por empresa, mercadería...">
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-[#2D7AC0]">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-[#2D7AC0] text-white text-xs uppercase font-semibold">
+                                <th class="p-4">Razon Social</th>
+                                <th class="p-4">CUIT/CUIL</th>
+                                <th class="p-4">Mercadería</th>
+                                <th class="p-4">Días Entrega</th>
+                                <th class="p-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-proveedores" class="divide-y divide-[#2D7AC0]/20 text-sm font-medium text-slate-800"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const nombreSesion = sessionStorage.getItem('usuario_nombre');
+        document.getElementById('nombre-usuario').innerText = nombreSesion + " (Admin)";
+
+        let listaProveedores = [];
+
+        async function cargarProveedores() {
+            const res = await fetch('/api/proveedores');
+            listaProveedores = await res.json();
+            inyectarTablaProveedores(listaProveedores);
+        }
+
+        function inyectarTablaProveedores(datos) {
+            const tbody = document.getElementById('tabla-proveedores');
+            tbody.innerHTML = '';
+            datos.forEach(p => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-[#2D7AC0]/10 transition-colors">
+                        <td class="p-4">${p.razon_social}<br><span class="text-xs text-slate-500 font-normal">${p.telefono}</span></td>
+                        <td class="p-4">${p.cuit || '-'}</td>
+                        <td class="p-4">${p.mercaderia}</td>
+                        <td class="p-4">${p.dias_entrega}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="prepararModificar(${p.id})" class="text-[#2D7AC0] font-bold mr-3 hover:underline">✏️ Editar</button>
+                            <button onclick="eliminarProveedor(${p.id})" class="text-red-600 font-bold hover:underline">🗑️ Borrar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filtrarProveedores() {
+            const texto = document.getElementById('buscador-proveedores').value.toLowerCase();
+            const filtrados = listaProveedores.filter(p => 
+                p.razon_social.toLowerCase().includes(texto) || 
+                p.mercaderia.toLowerCase().includes(texto)
+            );
+            inyectarTablaProveedores(filtrados);
+        }
+
+        async function procesarProveedor() {
+            const id = document.getElementById('proveedor-id').value;
+            const payload = {
+                razon_social: document.getElementById('razon-social').value,
+                cuit: document.getElementById('cuit').value,
+                telefono: document.getElementById('telefono').value,
+                email: document.getElementById('email').value,
+                mercaderia: document.getElementById('mercaderia').value,
+                dias_entrega: document.getElementById('dias').value
+            };
+
+            const url = id ? `/api/proveedores/${id}` : '/api/proveedores';
+            const metodo = id ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if(data.success) { 
+                alert(data.mensaje); 
+                cancelarEdicion(); 
+                cargarProveedores(); 
+            }
+        }
+
+        function prepararModificar(id) {
+            const p = listaProveedores.find(x => x.id === id);
+            document.getElementById('proveedor-id').value = p.id;
+            document.getElementById('razon-social').value = p.razon_social;
+            document.getElementById('cuit').value = p.cuit || '';
+            document.getElementById('telefono').value = p.telefono;
+            document.getElementById('email').value = p.email;
+            document.getElementById('mercaderia').value = p.mercaderia;
+            document.getElementById('dias').value = p.dias_entrega;
+            document.getElementById('btn-guardar').innerText = "Actualizar";
+            document.getElementById('btn-cancelar').classList.remove('hidden');
+        }
+
+        function cancelarEdicion() {
+            document.getElementById('form-proveedor').reset();
+            document.getElementById('proveedor-id').value = "";
+            document.getElementById('btn-guardar').innerText = "Guardar";
+            document.getElementById('btn-cancelar').classList.add('hidden');
+        }
+
+        async function eliminarProveedor(id) {
+            if(confirm("¿Seguro que quieres eliminar este proveedor?")) {
+                await fetch(`/api/proveedores/${id}`, { method: 'DELETE' });
+                cargarProveedores();
+            }
+        }
+
+        function cerrarSesion() { sessionStorage.clear(); window.location.href = '/'; }
+
+        cargarProveedores();
+    </script>
+</body>
+</html>

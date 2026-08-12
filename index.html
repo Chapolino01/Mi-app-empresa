@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso al Sistema - Empresa Central</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #C3A492; }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen font-sans">
+
+    <div class="w-full max-w-md bg-[#C3A492] p-8 rounded-3xl shadow-2xl border-2 border-[#2D7AC0]">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-black text-[#2D7AC0] tracking-tight">Empresa Central</h1>
+            <p class="text-slate-900 mt-2 text-sm font-medium">Ingresa tus credenciales de red local</p>
+        </div>
+
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label class="block text-xs font-bold text-[#2D7AC0] mb-1 uppercase tracking-wider" for="usuario">Usuario</label>
+                <input class="w-full px-4 py-3 bg-white border-2 border-[#2D7AC0] rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0] transition-colors" 
+                       id="usuario" type="text" placeholder="Ej. juan_ventas" required>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-[#2D7AC0] mb-1 uppercase tracking-wider" for="password">Contraseña</label>
+                <input class="w-full px-4 py-3 bg-white border-2 border-[#2D7AC0] rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0] transition-colors" 
+                       id="password" type="password" placeholder="••••••••" required>
+            </div>
+
+            <button class="w-full bg-[#2D7AC0] hover:bg-[#2568a5] text-white font-black py-4 rounded-2xl transition-all duration-300 transform active:scale-95 shadow-xl shadow-[#2D7AC0]/20" 
+                    type="button" onclick="conectarLogin()">
+                INICIAR SESIÓN
+            </button>
+        </form>
+    </div>
+
+    <script>
+        async function conectarLogin() {
+            const usuario = document.getElementById('usuario').value;
+            const contrasena = document.getElementById('password').value;
+
+            if (!usuario || !contrasena) {
+                alert("Por favor, completa todos los campos.");
+                return;
+            }
+
+            try {
+                const respuesta = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, contrasena })
+                });
+
+                const resultado = await respuesta.json();
+
+                if (resultado.success) {
+                    sessionStorage.setItem('usuario_nombre', resultado.mensaje); 
+                    sessionStorage.setItem('usuario_rol', resultado.rol || resultado.role);
+
+                    alert("Bienvenido " + resultado.mensaje);
+
+                    const rol = (resultado.rol || resultado.role).toLowerCase();
+                    
+                    if (rol === 'admin') {
+                        window.location.href = '/dashboard.html';
+                    } 
+                    else if (rol === 'deposito') {
+                        window.location.href = '/deposito.html';
+                    } 
+                    else if (rol === 'vendedor') {
+                        window.location.href = '/ventas.html';
+                    } 
+                    else {
+                        alert("Rol no configurado: " + rol);
+                    }
+                } else {
+                    alert("Error: " + (resultado.mensaje || "Credenciales incorrectas"));
+                }
+            } catch (error) {
+                console.error("Error de conexión:", error);
+                alert("No se pudo conectar con el servidor.");
+            }
+        }
+    </script>
+</body>
+</html>

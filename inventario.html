@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - Sistema Central</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #C3A492; }
+    </style>
+</head>
+<body class="text-slate-900 font-sans flex h-screen overflow-hidden">
+
+    <div class="w-64 bg-[#2D7AC0] border-r border-[#2D7AC0] flex flex-col justify-between">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold tracking-tight text-white mb-8">Empresa Central</h2>
+            <nav class="space-y-3">
+                <a href="/dashboard.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">📊 Dashboard</a>
+                <a href="/inventario.html" class="block px-4 py-2.5 rounded-xl bg-white text-[#2D7AC0] font-medium transition-colors">📦 Inventario / Stock</a>
+                <a href="/ventas.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">🛒 Punto de Venta</a>
+                <a href="/empleados.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">👥 Empleados</a>
+                <a href="/proveedores.html" class="block px-4 py-2.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-colors">🚚 Proveedores</a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-white/20 bg-[#2D7AC0]">
+            <p class="text-xs text-white/60">Usuario activo:</p>
+            <p class="font-semibold text-sm text-white" id="nombre-usuario">Cargando...</p>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-y-auto p-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-[#2D7AC0]">Control de Inventario</h1>
+                <p class="text-slate-900 text-sm mt-1">Alta de artículos, consulta de existencias e ingresos de stock.</p>
+            </div>
+            <button onclick="cerrarSesion()" class="bg-[#2D7AC0] hover:bg-[#2568a5] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">Cerrar Sesión</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="bg-[#C3A492] p-6 rounded-2xl border-2 border-[#2D7AC0] h-fit transition-all duration-350" id="contenedor-formulario">
+                <h3 class="text-xl font-bold mb-4 text-[#2D7AC0]" id="titulo-form">Nuevo Artículo</h3>
+                <form id="form-producto" class="space-y-4">
+                    <input type="hidden" id="producto-id" value="">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 mb-1">Código de Barras</label>
+                        <input type="text" id="codigo" onkeydown="buscarPorEscaneoInventario(event)" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="Ej. 779123456789">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 mb-1">Nombre del Producto</label>
+                        <input type="text" id="nombre" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="Ej. Amoladora Angular 115mm">
+                    </div>
+                    <div class="border-y-2 border-[#2D7AC0] py-2">
+                        <div class="flex justify-between items-center cursor-pointer" onclick="toggleExtras()">
+                            <span class="text-xs font-semibold text-slate-800">Características adicionales</span>
+                            <button type="button" id="btn-toggle-extras" class="bg-[#2D7AC0] text-white w-8 h-8 rounded-full font-bold transition-all">+</button>
+                        </div>
+                        <div id="campos-extras" class="hidden grid grid-cols-2 gap-4 mt-4 animate-in fade-in duration-300">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-800 mb-1">Detalle 1</label>
+                                <input type="text" id="detalle1" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="Ej. Dato 1">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-800 mb-1">Detalle 2</label>
+                                <input type="text" id="detalle2" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="Ej. Dato 2">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-800 mb-1">Precio Costo</label>
+                            <input type="number" id="costo" step="0.01" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-800 mb-1">Precio Venta</label>
+                            <input type="number" id="venta" step="0.01" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-800 mb-1">Stock Actual</label>
+                        <input type="number" id="stock" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="0">
+                    </div>
+                    <div class="pt-2 space-y-2">
+                        <button type="button" onclick="procesarProducto()" id="btn-guardar" class="w-full bg-[#2D7AC0] hover:bg-[#2568a5] text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-[#2D7AC0]/20">Guardar Producto</button>
+                        <button type="button" onclick="cancelarEdicion()" id="btn-cancelar" class="w-full bg-slate-500 hover:bg-slate-600 text-white font-medium py-2 rounded-xl text-sm transition-colors hidden">Cancelar Modificación</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 bg-[#C3A492] p-6 rounded-2xl border-2 border-[#2D7AC0]">
+                <h3 class="text-xl font-bold mb-4 text-[#2D7AC0]">Artículos en Existencia</h3>
+                <input type="text" id="buscador-inventario" oninput="filtrarInventario()" class="w-full bg-white border-2 border-[#2D7AC0] rounded-xl px-4 py-2.5 mb-4 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D7AC0]" placeholder="🔍 Buscar por nombre o código...">
+                <div class="overflow-x-auto rounded-xl border-2 border-[#2D7AC0]">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-[#2D7AC0] text-white text-xs uppercase font-semibold">
+                                <th class="p-4">Código</th>
+                                <th class="p-4">Descripción</th>
+                                <th class="p-4 text-right">Precio</th>
+                                <th class="p-4 text-center">Stock</th>
+                                <th class="p-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-productos" class="divide-y divide-[#2D7AC0] text-sm text-slate-900"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const nombreSesion = sessionStorage.getItem('usuario_nombre');
+        if (!nombreSesion) {
+            window.location.href = '/index.html'; 
+        } else {
+            document.getElementById('nombre-usuario').innerText = nombreSesion + " (Admin)";
+        }
+
+        let listaProductos = [];
+
+        function toggleExtras() {
+            const campos = document.getElementById('campos-extras');
+            const btn = document.getElementById('btn-toggle-extras');
+            campos.classList.toggle('hidden');
+            btn.innerText = campos.classList.contains('hidden') ? "+" : "-";
+        }
+
+        async function buscarPorEscaneoInventario(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const codigoEscaneado = document.getElementById('codigo').value.trim();
+                const p = listaProductos.find(x => x.codigo_barra === codigoEscaneado);
+                
+                if (p) {
+                    document.getElementById('producto-id').value = p.id;
+                    document.getElementById('nombre').value = p.nombre;
+                    document.getElementById('detalle1').value = p.detalle1 || '';
+                    document.getElementById('detalle2').value = p.detalle2 || '';
+                    document.getElementById('costo').value = p.precio_costo;
+                    document.getElementById('venta').value = p.precio_venta;
+                    document.getElementById('stock').value = parseInt(p.stock_actual) + 1;
+                    
+                    document.getElementById('campos-extras').classList.remove('hidden');
+                    document.getElementById('btn-toggle-extras').innerText = "-";
+                    document.getElementById('btn-cancelar').classList.remove('hidden');
+                } else {
+                    cancelarEdicion();
+                    document.getElementById('codigo').value = codigoEscaneado;
+                    document.getElementById('nombre').focus();
+                }
+            }
+        }
+
+        async function cargarProductos() {
+            const res = await fetch('/api/productos');
+            listaProductos = await res.json();
+            renderizarTabla(listaProductos);
+        }
+
+        function renderizarTabla(datos) {
+            const tbody = document.getElementById('tabla-productos');
+            tbody.innerHTML = datos.map(p => `
+                <tr class="hover:bg-[#2D7AC0]/10">
+                    <td class="p-4 font-mono">${p.codigo_barra}</td>
+                    <td class="p-4">${p.nombre}<br><span class="text-[10px] text-[#2D7AC0] font-bold">${p.detalle1 || ''} ${p.detalle2 || ''}</span></td>
+                    <td class="p-4 text-right">$${p.precio_venta}</td>
+                    <td class="p-4 text-center">${p.stock_actual}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="prepararModificar(${p.id})" class="text-[#2D7AC0] mr-2">✏️</button>
+                        <button onclick="eliminarProducto(${p.id})" class="text-red-600">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filtrarInventario() {
+            const busqueda = document.getElementById('buscador-inventario').value.toLowerCase();
+            const filtrados = listaProductos.filter(p => 
+                p.nombre.toLowerCase().includes(busqueda) || 
+                p.codigo_barra.toLowerCase().includes(busqueda)
+            );
+            renderizarTabla(filtrados);
+        }
+
+        async function procesarProducto() {
+            const id = document.getElementById('producto-id').value;
+            const payload = {
+                codigo_barra: document.getElementById('codigo').value,
+                nombre: document.getElementById('nombre').value,
+                detalle1: document.getElementById('detalle1').value,
+                detalle2: document.getElementById('detalle2').value,
+                precio_costo: document.getElementById('costo').value,
+                precio_venta: document.getElementById('venta').value,
+                stock_actual: document.getElementById('stock').value
+            };
+
+            await fetch(id ? `/api/productos/${id}` : '/api/productos', {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            cancelarEdicion();
+            cargarProductos();
+        }
+
+        async function eliminarProducto(id) {
+            if(!confirm('¿Estás seguro de eliminar este producto?')) return;
+            await fetch(`/api/productos/${id}`, { method: 'DELETE' });
+            cargarProductos();
+        }
+
+        function prepararModificar(id) {
+            const p = listaProductos.find(x => x.id === id);
+            document.getElementById('producto-id').value = p.id;
+            document.getElementById('codigo').value = p.codigo_barra;
+            document.getElementById('nombre').value = p.nombre;
+            document.getElementById('detalle1').value = p.detalle1 || '';
+            document.getElementById('detalle2').value = p.detalle2 || '';
+            document.getElementById('costo').value = p.precio_costo;
+            document.getElementById('venta').value = p.precio_venta;
+            document.getElementById('stock').value = p.stock_actual;
+            
+            if(p.detalle1 || p.detalle2) {
+                document.getElementById('campos-extras').classList.remove('hidden');
+                document.getElementById('btn-toggle-extras').innerText = "-";
+            }
+            document.getElementById('btn-cancelar').classList.remove('hidden');
+        }
+
+        function cancelarEdicion() {
+            document.getElementById('form-producto').reset();
+            document.getElementById('producto-id').value = "";
+            document.getElementById('campos-extras').classList.add('hidden');
+            document.getElementById('btn-toggle-extras').innerText = "+";
+            document.getElementById('btn-cancelar').classList.add('hidden');
+        }
+
+        function cerrarSesion() { sessionStorage.clear(); window.location.href = '/index.html'; }
+
+        cargarProductos();
+    </script>
+</body>
+</html>

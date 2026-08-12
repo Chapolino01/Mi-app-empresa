@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depósito y Stock - Sistema Central</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #C3A492; }
+    </style>
+</head>
+<body class="text-slate-900 font-sans flex h-screen overflow-hidden">
+
+    <div class="w-64 bg-[#2D7AC0] border-r border-[#2D7AC0] flex flex-col justify-between">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold tracking-tight text-white mb-8">Empresa Central</h2>
+            <nav class="space-y-3">
+                <a href="#" class="block px-4 py-2.5 rounded-xl bg-white text-[#2D7AC0] font-medium transition-colors">📦 Depósito / Stock</a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-white/20 bg-[#2D7AC0]">
+            <p class="text-xs text-white/60">Usuario activo:</p>
+            <p class="font-semibold text-sm text-white" id="nombre-usuario">Cargando...</p>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-y-auto p-8">
+        
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-[#2D7AC0]">Panel de Depósito</h1>
+                <p class="text-slate-900 text-sm mt-1">Control de mercadería entrante y alertas de reposición urgente.</p>
+            </div>
+            <button onclick="cerrarSesion()" class="bg-[#2D7AC0] hover:bg-[#2568a5] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-[#C3A492] p-6 rounded-2xl border-2 border-red-500 shadow-lg">
+                <p class="text-red-700 text-sm font-bold uppercase">⚠️ Productos Sin Stock</p>
+                <p id="cant-critico" class="text-3xl font-bold mt-2 text-red-900">0</p>
+            </div>
+            <div class="bg-[#C3A492] p-6 rounded-2xl border-2 border-yellow-500 shadow-lg">
+                <p class="text-yellow-700 text-sm font-bold uppercase">📉 Stock Bajo (< 5)</p>
+                <p id="cant-bajo" class="text-3xl font-bold mt-2 text-yellow-900">0</p>
+            </div>
+        </div>
+
+        <div class="bg-[#C3A492] p-6 rounded-2xl border-2 border-[#2D7AC0]">
+            <h3 class="text-xl font-bold mb-4 text-[#2D7AC0]">Planilla de Existencias</h3>
+            <div class="overflow-x-auto rounded-xl border-2 border-[#2D7AC0]">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-[#2D7AC0] text-white text-xs uppercase font-semibold">
+                            <th class="p-4">Código</th>
+                            <th class="p-4">Descripción</th>
+                            <th class="p-4 text-center">Stock Actual</th>
+                            <th class="p-4 text-center">Acción (Sumar Mercadería)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-deposito" class="divide-y divide-[#2D7AC0] text-sm text-slate-900">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('nombre-usuario').innerText = sessionStorage.getItem('usuario_nombre') || "Encargado";
+
+        async function cargarStock() {
+            const respuesta = await fetch('/api/productos');
+            const productos = await respuesta.json();
+            
+            const tbody = document.getElementById('tabla-deposito');
+            tbody.innerHTML = ''; 
+
+            let criticos = 0;
+            let bajos = 0;
+
+            if(productos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-700">No hay productos en la base de datos.</td></tr>`;
+                return;
+            }
+
+            productos.forEach(p => {
+                if (p.stock_actual === 0) criticos++;
+                else if (p.stock_actual <= 5) bajos++;
+
+                let colorStock = "bg-white/50 text-[#2D7AC0]";
+                if (p.stock_actual === 0) colorStock = "bg-red-500 text-white font-bold animate-pulse";
+                else if (p.stock_actual <= 5) colorStock = "bg-yellow-400 text-yellow-900 font-bold";
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-[#2D7AC0]/10 transition-colors">
+                        <td class="p-4 font-mono text-slate-800">${p.codigo_barra}</td>
+                        <td class="p-4 font-medium text-slate-900">${p.nombre}</td>
+                        <td class="p-4 text-center">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold ${colorStock}">
+                                ${p.stock_actual} unidades
+                            </span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <div class="flex justify-center items-center gap-2">
+                                <input type="number" id="input-${p.id}" min="1" value="1" class="w-16 bg-[#C3A492] border-2 border-[#2D7AC0] rounded-lg px-2 py-1 text-center focus:outline-none">
+                                <button onclick="recibirMercaderia(${p.id})" class="bg-[#2D7AC0] hover:bg-[#2568a5] text-white font-semibold px-3 py-1 rounded-lg text-xs transition-colors">
+                                    📥 Ingresar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('cant-critico').innerText = criticos;
+            document.getElementById('cant-bajo').innerText = bajos;
+        }
+
+        async function recibirMercaderia(id) {
+            const cantidad = parseInt(document.getElementById(`input-${id}`).value);
+            
+            if(!cantidad || cantidad <= 0) {
+                alert("Por favor ingresa una cantidad válida.");
+                return;
+            }
+
+            const respuesta = await fetch('/api/deposito/sumar-stock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, cantidad })
+            });
+
+            const resultado = await respuesta.json();
+
+            if(resultado.success) {
+                cargarStock(); 
+            } else {
+                alert("Error al actualizar: " + resultado.mensaje);
+            }
+        }
+
+        function cerrarSesion() {
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
+
+        cargarStock();
+    </script>
+</body>
+</html>
